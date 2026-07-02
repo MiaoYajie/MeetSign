@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MeetSign.Api/MeetSign.Api.csproj" />
+  <Project Path="MeetSign.Application/MeetSign.Application.csproj" />
+  <Project Path="MeetSign.Domain/MeetSign.Domain.csproj" />
+  <Project Path="MeetSign.Infrastructure/MeetSign.Infrastructure.csproj" />
+</Solution>

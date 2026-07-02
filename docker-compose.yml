@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: meetsign
+      POSTGRES_PASSWORD: meetsign
+      POSTGRES_DB: meetsign
+    ports:
+      - "5432:5432"
+    volumes:
+      - meetsign_pg:/var/lib/postgresql/data
+
+volumes:
+  meetsign_pg:

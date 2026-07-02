@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+*.db
+*.db-shm
+*.db-wal
+
+# Node
+node_modules/
+dist/
+.pnpm-store/
+
+# IDE
+.vs/
+.idea/
+
+# Uploads
+backend/MeetSign.Api/wwwroot/uploads/*
+!backend/MeetSign.Api/wwwroot/uploads/.gitkeep
+
+# OS
+Thumbs.db
+.DS_Store
+/backend/MeetSign.Api/wwwroot/uploads
