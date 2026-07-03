@@ -94,6 +94,39 @@
   font-size: 14px;
 }
 
+.form-designer-layout.result-mode {
+  grid-template-columns: 1fr 300px;
+}
+
+.form-designer-layout.result-mode .form-designer-pool {
+  display: none;
+}
+
+.checkin-preview-wrap .result-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 28px;
+}
+
+.checkin-preview-wrap .result-message {
+  text-align: center;
+  color: #334155;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.checkin-preview-wrap .result-action-btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  color: #0f172a;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
 @media (max-width: 1200px) {
   .form-designer-layout {
     grid-template-columns: 1fr;

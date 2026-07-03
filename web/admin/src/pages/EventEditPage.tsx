@@ -51,8 +51,6 @@ export default function EventEditPage() {
         description: data.description,
         checkInMode: data.checkInMode,
         footerHtml: data.footerHtml,
-        successTemplate: data.successTemplate,
-        failureTemplate: data.failureTemplate,
       });
     } catch {
       message.error('加载活动失败');
@@ -83,19 +81,6 @@ export default function EventEditPage() {
       const checkInMode = form.getFieldValue('checkInMode');
       await eventsApi.updateMode(id, checkInMode);
       toastOk('签到模式已保存');
-      load();
-    } catch (err) {
-      toastFail(err);
-    }
-  };
-
-  const saveTemplates = async () => {
-    if (!id) return;
-    try {
-      const successTemplate = form.getFieldValue('successTemplate');
-      const failureTemplate = form.getFieldValue('failureTemplate');
-      await eventsApi.updateTemplates(id, successTemplate, failureTemplate);
-      toastOk('消息模板已保存');
       load();
     } catch (err) {
       toastFail(err);
@@ -156,7 +141,23 @@ export default function EventEditPage() {
     if (!id) return;
     try {
       await eventsApi.updatePanelConfig(id, panelConfig);
-      toastOk('面板配置已保存');
+      toastOk('签到面板配置已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
+  };
+
+  const saveResultConfig = async (
+    panelConfig: PanelConfig,
+    successTemplate: string,
+    failureTemplate: string
+  ) => {
+    if (!id) return;
+    try {
+      await eventsApi.updatePanelConfig(id, panelConfig);
+      await eventsApi.updateTemplates(id, successTemplate, failureTemplate);
+      toastOk('结果配置已保存');
       load();
     } catch (err) {
       toastFail(err);
@@ -249,22 +250,8 @@ export default function EventEditPage() {
                   onSaveLayout={saveFormLayout}
                   onSaveConditions={saveConditions}
                   onSavePanelConfig={savePanelConfig}
+                  onSaveResultConfig={saveResultConfig}
                 />
-              ),
-            },
-            {
-              key: 'templates',
-              label: '结果消息',
-              children: (
-                <Form form={form} layout="vertical">
-                  <Form.Item name="successTemplate" label="成功消息模板">
-                    <Input.TextArea rows={3} placeholder="欢迎 {{name}} 签到成功！座位：{{seatNumber}}" />
-                  </Form.Item>
-                  <Form.Item name="failureTemplate" label="失败消息模板">
-                    <Input.TextArea rows={3} placeholder="签到失败，请核对 {{name}} 信息。" />
-                  </Form.Item>
-                  <Button type="primary" onClick={saveTemplates}>保存</Button>
-                </Form>
               ),
             },
           ]}

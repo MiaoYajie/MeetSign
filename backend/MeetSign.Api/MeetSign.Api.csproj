@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <FrontendRoot>$(MSBuildProjectDirectory)\..\..\web</FrontendRoot>
     <SkipFrontendBuild Condition="'$(SkipFrontendBuild)' == ''">false</SkipFrontendBuild>
+    <WwwrootDir>$(MSBuildProjectDirectory)\wwwroot</WwwrootDir>
   </PropertyGroup>
 
   <!-- Azure App Service 未预装 .NET 10，Release 发布必须自包含 win-x64 -->
@@ -31,21 +32,57 @@
     <ProjectReference Include="..\MeetSign.Infrastructure\MeetSign.Infrastructure.csproj" />
   </ItemGroup>
 
-  <Target Name="BuildAndCopyFrontend" BeforeTargets="ComputeFilesToPublish" Condition="'$(SkipFrontendBuild)' != 'true'">
+  <!-- dotnet clean 时清除 wwwroot 中的前端产物及 StaticWebAssets 缓存 -->
+  <Target Name="CleanWwwrootFrontend" AfterTargets="Clean">
+    <RemoveDir Directories="$(WwwrootDir)\assets;$(WwwrootDir)\checkin" ContinueOnError="true" />
+    <Delete Files="$(WwwrootDir)\index.html;$(WwwrootDir)\favicon.svg;$(WwwrootDir)\icons.svg" ContinueOnError="true" />
+    <ItemGroup>
+      <_StaticWebAssetsCache Include="$(BaseIntermediateOutputPath)**\staticwebassets*.json" />
+      <_StaticWebAssetsCache Include="$(BaseIntermediateOutputPath)**\*.dswa.cache.json" />
+    </ItemGroup>
+    <Delete Files="@(_StaticWebAssetsCache)" ContinueOnError="true" />
+  </Target>
+
+  <!-- 必须在 Build / StaticWebAssets 之前执行，否则发布包仍引用旧 wwwroot -->
+  <Target Name="BuildAndCopyFrontend"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(SkipFrontendBuild)' != 'true'">
     <Message Importance="high" Text="Building frontend apps..." />
+
+    <RemoveDir Directories="$(WwwrootDir)\assets;$(WwwrootDir)\checkin" />
+    <Delete Files="$(WwwrootDir)\index.html;$(WwwrootDir)\favicon.svg;$(WwwrootDir)\icons.svg" ContinueOnError="false" />
+
     <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm install --frozen-lockfile" />
     <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm --filter admin build" />
     <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm --filter checkin build" />
+
     <ItemGroup>
       <AdminDistFiles Include="$(FrontendRoot)\admin\dist\**\*.*" />
       <CheckinDistFiles Include="$(FrontendRoot)\checkin\dist\**\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(AdminDistFiles)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(CheckinDistFiles)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\checkin\%(RecursiveDir)" SkipUnchangedFiles="true" />
+
+    <Copy SourceFiles="@(AdminDistFiles)"
+          DestinationFolder="$(WwwrootDir)\%(RecursiveDir)"
+          SkipUnchangedFiles="false" />
+    <Copy SourceFiles="@(CheckinDistFiles)"
+          DestinationFolder="$(WwwrootDir)\checkin\%(RecursiveDir)"
+          SkipUnchangedFiles="false" />
+
+    <Message Importance="high" Text="Frontend copied to wwwroot." />
+  </Target>
+
+  <!-- wwwroot 更新后清除 StaticWebAssets 缓存，避免 manifest 仍引用已删除的旧 hash 文件 -->
+  <Target Name="InvalidateStaticWebAssetsCache"
+          AfterTargets="BuildAndCopyFrontend"
+          BeforeTargets="DefineStaticWebAssets"
+          Condition="'$(SkipFrontendBuild)' != 'true'">
     <ItemGroup>
-      <FrontendContent Include="$(MSBuildProjectDirectory)\wwwroot\**\*.*" Exclude="$(MSBuildProjectDirectory)\wwwroot\uploads\**\*.*" />
-      <Content Include="@(FrontendContent)" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="Never" />
+      <_StaticWebAssetsCache Include="$(IntermediateOutputPath)staticwebassets*.json" />
+      <_StaticWebAssetsCache Include="$(IntermediateOutputPath)*.dswa.cache.json" />
+      <_StaticWebAssetsCache Include="$(BaseIntermediateOutputPath)**\staticwebassets*.json" />
+      <_StaticWebAssetsCache Include="$(BaseIntermediateOutputPath)**\*.dswa.cache.json" />
     </ItemGroup>
+    <Delete Files="@(_StaticWebAssetsCache)" ContinueOnError="true" />
   </Target>
 
 </Project>

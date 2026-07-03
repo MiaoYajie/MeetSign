@@ -14,7 +14,7 @@ builder.Logging.AddSimpleConsole(options =>
 {
     options.SingleLine = true;
     options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
-    options.IncludeScopes = true;
+    options.IncludeScopes = false;
 });
 
 builder.Services.AddHttpLogging(options =>
@@ -111,7 +111,7 @@ using (var scope = app.Services.CreateScope())
             if (pending.Count > 0)
             {
                 logger.LogInformation("Applying {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
-                db.Database.Migrate();
+                //db.Database.Migrate();
                 logger.LogInformation("Database migration completed.");
             }
             else
