@@ -1,3 +1,4 @@
+using MeetSign.Application.DTOs.Events;
 using MeetSign.Domain.Enums;
 
 namespace MeetSign.Application.DTOs.Public;
@@ -9,6 +10,7 @@ public record PublicSessionConfigDto(
     string? BackgroundUrl,
     string? LogoUrl,
     string? FooterHtml,
+    PanelConfigDto PanelConfig,
     bool IsOpen,
     string? ClosedMessage,
     IReadOnlyList<PublicFieldDto> Fields,

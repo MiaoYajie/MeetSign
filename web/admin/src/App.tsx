@@ -22,7 +22,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/events" replace />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id/edit" element={<EventEditPage />} />
-              <Route path="/events/:id/sessions" element={<EventSessionsPage />} />
+              <Route path="/sessions" element={<EventSessionsPage />} />
               <Route path="/sessions/:id/share" element={<SessionSharePage />} />
               <Route path="/sessions/:id/attendance" element={<SessionAttendancePage />} />
               <Route path="/sessions/:id/attendees" element={<Navigate to="../attendance" replace />} />

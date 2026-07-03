@@ -2,6 +2,8 @@ namespace MeetSign.Application.DTOs.Sessions;
 
 public record SessionListItemDto(
     Guid Id,
+    Guid EventId,
+    string EventName,
     string Name,
     DateTime OpenStart,
     DateTime OpenEnd,

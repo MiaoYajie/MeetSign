@@ -36,6 +36,8 @@ export interface FieldDefinition {
   sortOrder: number;
 }
 
+import type { PanelConfig } from '@meetsign/form-kit';
+
 export interface EventDetail {
   id: string;
   name: string;
@@ -46,6 +48,7 @@ export interface EventDetail {
   footerHtml?: string;
   successTemplate: string;
   failureTemplate: string;
+  panelConfig: PanelConfig;
   fields: FieldDefinition[];
   formLayout: { fieldKey: string; row: number; col: number; colSpan: number }[];
   conditions: { targetFieldKey: string; conditionJson: string }[];
@@ -55,6 +58,8 @@ export interface EventDetail {
 
 export interface SessionListItem {
   id: string;
+  eventId: string;
+  eventName: string;
   name: string;
   openStart: string;
   openEnd: string;
@@ -107,6 +112,8 @@ export const eventsApi = {
     api.put<EventDetail>(`/admin/events/${id}/form-layout`, { items }),
   updateConditions: (id: string, conditions: EventDetail['conditions']) =>
     api.put<EventDetail>(`/admin/events/${id}/conditions`, { conditions }),
+  updatePanelConfig: (id: string, panelConfig: PanelConfig) =>
+    api.put<EventDetail>(`/admin/events/${id}/panel-config`, { panelConfig }),
   updateTemplates: (id: string, successTemplate: string, failureTemplate: string) =>
     api.put<EventDetail>(`/admin/events/${id}/templates`, { successTemplate, failureTemplate }),
   updateMode: (id: string, checkInMode: 'PresetList' | 'FreeForm') =>
@@ -133,6 +140,7 @@ export interface AttendanceItem {
 }
 
 export const sessionsApi = {
+  list: () => api.get<SessionListItem[]>('/admin/sessions/all'),
   get: (id: string) => api.get<SessionDetail>(`/admin/sessions/${id}`),
   update: (id: string, data: { name: string; openStart: string; openEnd: string }) =>
     api.put<SessionDetail>(`/admin/sessions/${id}`, data),

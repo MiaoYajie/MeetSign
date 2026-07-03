@@ -121,3 +121,12 @@ export function clearCachedResult(token: string) {
 }
 
 export { DynamicForm } from './DynamicForm';
+export { CheckInPanel } from './CheckInPanel';
+export type { CheckInPanelProps } from './CheckInPanel';
+export {
+  DEFAULT_PANEL_CONFIG,
+  mergePanelConfig,
+  panelBackgroundStyle,
+  resolvePanelTitle,
+} from './panelConfig';
+export type { PanelConfig } from './panelConfig';

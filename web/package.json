@@ -4,6 +4,7 @@
   "scripts": {
     "dev:admin": "pnpm --filter admin dev",
     "dev:checkin": "pnpm --filter checkin dev",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "build:deploy": "pnpm --filter admin build && pnpm --filter checkin build"
   }
 }

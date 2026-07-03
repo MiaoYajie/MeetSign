@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { PanelConfig } from '@meetsign/form-kit';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -9,6 +10,7 @@ export interface PublicSessionConfig {
   backgroundUrl?: string;
   logoUrl?: string;
   footerHtml?: string;
+  panelConfig: PanelConfig;
   isOpen: boolean;
   closedMessage?: string;
   fields: { key: string; label: string; fieldType: string; required: boolean }[];

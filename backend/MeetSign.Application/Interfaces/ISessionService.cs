@@ -5,6 +5,7 @@ namespace MeetSign.Application.Interfaces;
 public interface ISessionService
 {
     Task<IReadOnlyList<SessionListItemDto>> ListByEventAsync(Guid ownerId, Guid eventId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SessionListItemDto>> ListAllAsync(Guid ownerId, CancellationToken cancellationToken = default);
     Task<SessionDetailDto> GetAsync(Guid ownerId, Guid sessionId, CancellationToken cancellationToken = default);
     Task<SessionDetailDto> CreateAsync(Guid ownerId, Guid eventId, CreateSessionRequest request, CancellationToken cancellationToken = default);
     Task<SessionDetailDto> UpdateAsync(Guid ownerId, Guid sessionId, UpdateSessionRequest request, CancellationToken cancellationToken = default);

@@ -23,44 +23,52 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>(e =>
         {
             e.HasIndex(x => x.Email).IsUnique();
+            e.ToTable("Sign_Users");
         });
 
         modelBuilder.Entity<Event>(e =>
         {
             e.HasOne(x => x.Owner).WithMany(x => x.Events).HasForeignKey(x => x.OwnerId);
+            e.ToTable("Sign_Events");
         });
 
         modelBuilder.Entity<FieldDefinition>(e =>
         {
             e.HasOne(x => x.Event).WithMany(x => x.FieldDefinitions).HasForeignKey(x => x.EventId);
             e.HasIndex(x => new { x.EventId, x.Key }).IsUnique();
+            e.ToTable("Sign_FieldDefinitions");
         });
 
         modelBuilder.Entity<FormLayoutItem>(e =>
         {
             e.HasOne(x => x.Event).WithMany(x => x.FormLayoutItems).HasForeignKey(x => x.EventId);
+            e.ToTable("Sign_FormLayoutItems");
         });
 
         modelBuilder.Entity<FieldCondition>(e =>
         {
             e.HasOne(x => x.Event).WithMany(x => x.FieldConditions).HasForeignKey(x => x.EventId);
+            e.ToTable("Sign_FieldConditions");
         });
 
         modelBuilder.Entity<CheckInSession>(e =>
         {
             e.HasOne(x => x.Event).WithMany(x => x.Sessions).HasForeignKey(x => x.EventId);
             e.HasIndex(x => x.PublicToken).IsUnique();
+            e.ToTable("Sign_CheckInSessions");
         });
 
         modelBuilder.Entity<Attendee>(e =>
         {
             e.HasOne(x => x.Session).WithMany(x => x.Attendees).HasForeignKey(x => x.SessionId);
+            e.ToTable("Sign_Attendees");
         });
 
         modelBuilder.Entity<CheckInRecord>(e =>
         {
             e.HasOne(x => x.Session).WithMany(x => x.Records).HasForeignKey(x => x.SessionId);
             e.HasIndex(x => new { x.SessionId, x.ClientFingerprint });
+            e.ToTable("Sign_CheckInRecords");
         });
     }
 }

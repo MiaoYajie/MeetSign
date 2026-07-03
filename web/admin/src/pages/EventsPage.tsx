@@ -6,6 +6,16 @@ import { useAuth } from '../context/AuthContext';
 
 const { Header, Content, Sider } = Layout;
 
+function menuSelectedKey(pathname: string) {
+  if (pathname.startsWith('/sessions')) {
+    return '/sessions';
+  }
+  if (pathname.startsWith('/events')) {
+    return '/events';
+  }
+  return pathname;
+}
+
 export function AdminLayout() {
   const { email, logout, token } = useAuth();
   const navigate = useNavigate();
@@ -32,9 +42,10 @@ export function AdminLayout() {
         <Sider width={220}>
           <Menu
             mode="inline"
-            selectedKeys={[location.pathname.split('/').slice(0, 3).join('/')]}
+            selectedKeys={[menuSelectedKey(location.pathname)]}
             items={[
               { key: '/events', label: <Link to="/events">活动列表</Link> },
+              { key: '/sessions', label: <Link to="/sessions">签到场次</Link> },
             ]}
           />
         </Sider>
@@ -103,7 +114,7 @@ export default function EventsPage() {
             render: (_, row) => (
               <Space>
                 <Link to={`/events/${row.id}/edit`}>编辑</Link>
-                <Link to={`/events/${row.id}/sessions`}>场次</Link>
+                <Link to={`/sessions?eventId=${row.id}`}>场次</Link>
               </Space>
             ),
           },

@@ -14,6 +14,7 @@ public record EventDetailDto(
     string? FooterHtml,
     string SuccessTemplate,
     string FailureTemplate,
+    PanelConfigDto PanelConfig,
     IReadOnlyList<FieldDefinitionDto> Fields,
     IReadOnlyList<FormLayoutItemDto> FormLayout,
     IReadOnlyList<FieldConditionDto> Conditions,
@@ -42,3 +43,4 @@ public record UpdateFormLayoutRequest(IReadOnlyList<FormLayoutItemDto> Items);
 public record UpdateConditionsRequest(IReadOnlyList<FieldConditionDto> Conditions);
 public record UpdateTemplatesRequest(string SuccessTemplate, string FailureTemplate);
 public record UpdateModeRequest(CheckInMode CheckInMode);
+public record UpdatePanelConfigRequest(PanelConfigDto PanelConfig);

@@ -1,0 +1,106 @@
+.form-designer-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+.form-designer-pool {
+  position: sticky;
+  top: 16px;
+}
+
+.form-designer-config {
+  position: sticky;
+  top: 16px;
+}
+
+.checkin-preview-wrap {
+  padding: 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  background-size: cover;
+  background-position: center;
+}
+
+.checkin-preview-wrap .checkin-card {
+  width: min(480px, 100%);
+  margin: 0 auto;
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.checkin-preview-wrap .logo {
+  display: block;
+  max-height: 64px;
+  margin: 0 auto 16px;
+}
+
+.checkin-preview-wrap h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.checkin-preview-wrap .session-name,
+.checkin-preview-wrap .welcome-message {
+  text-align: center;
+  color: #64748b;
+  margin: 8px 0 16px;
+}
+
+.checkin-preview-wrap .welcome-message {
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 12px;
+  color: #475569;
+}
+
+.checkin-preview-wrap .dynamic-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.preview-form-slot {
+  min-height: 48px;
+  border: 1px dashed;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.checkin-preview-wrap .primary-btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.checkin-preview-wrap .footer {
+  margin-top: 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+@media (max-width: 1200px) {
+  .form-designer-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .form-designer-pool,
+  .form-designer-config {
+    position: static;
+  }
+}

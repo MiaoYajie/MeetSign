@@ -14,6 +14,24 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { eventsApi, type EventDetail, type FieldDefinition } from '../api/client';
 import EventFormDesigner from '../components/EventFormDesigner';
+import type { PanelConfig } from '@meetsign/form-kit';
+
+function toastOk(text: string) {
+  message.success({ content: text, duration: 1.5 });
+}
+
+function toastFail(err: unknown, fallback = '保存失败') {
+  const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+  if (apiMsg) {
+    message.error({ content: apiMsg, duration: 2 });
+    return;
+  }
+  if ((err as { errorFields?: unknown[] })?.errorFields?.length) {
+    message.error({ content: '请完善必填项', duration: 2 });
+    return;
+  }
+  message.error({ content: fallback, duration: 2 });
+}
 
 export default function EventEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,10 +67,14 @@ export default function EventEditPage() {
 
   const saveBasic = async () => {
     if (!id) return;
-    const values = await form.validateFields(['name', 'description']);
-    await eventsApi.update(id, values.name, values.description);
-    message.success('基本信息已保存');
-    load();
+    try {
+      const values = await form.validateFields(['name', 'description']);
+      await eventsApi.update(id, values.name, values.description);
+      toastOk('基本信息已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
   };
 
   const saveMode = async () => {
@@ -60,55 +82,96 @@ export default function EventEditPage() {
     try {
       const checkInMode = form.getFieldValue('checkInMode');
       await eventsApi.updateMode(id, checkInMode);
-      message.success('签到模式已保存');
+      toastOk('签到模式已保存');
       load();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '保存失败';
-      message.error(msg);
+    } catch (err) {
+      toastFail(err);
     }
   };
 
   const saveTemplates = async () => {
     if (!id) return;
-    const successTemplate = form.getFieldValue('successTemplate');
-    const failureTemplate = form.getFieldValue('failureTemplate');
-    await eventsApi.updateTemplates(id, successTemplate, failureTemplate);
-    message.success('消息模板已保存');
-    load();
+    try {
+      const successTemplate = form.getFieldValue('successTemplate');
+      const failureTemplate = form.getFieldValue('failureTemplate');
+      await eventsApi.updateTemplates(id, successTemplate, failureTemplate);
+      toastOk('消息模板已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
   };
 
   const saveBranding = async () => {
     if (!id) return;
-    const formData = new FormData();
-    formData.append('footerHtml', form.getFieldValue('footerHtml') ?? '');
-    const bg = form.getFieldValue('background')?.[0]?.originFileObj;
-    const logo = form.getFieldValue('logo')?.[0]?.originFileObj;
-    if (bg) formData.append('background', bg);
-    if (logo) formData.append('logo', logo);
-    await eventsApi.updateBranding(id, formData);
-    message.success('品牌设置已保存');
-    load();
+    try {
+      const formData = new FormData();
+      formData.append('footerHtml', form.getFieldValue('footerHtml') ?? '');
+      const bg = form.getFieldValue('background')?.[0]?.originFileObj;
+      const logo = form.getFieldValue('logo')?.[0]?.originFileObj;
+      if (bg) formData.append('background', bg);
+      if (logo) formData.append('logo', logo);
+      await eventsApi.updateBranding(id, formData);
+      toastOk('品牌设置已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
   };
 
   const saveFields = async (fields: FieldDefinition[]) => {
     if (!id) return;
-    await eventsApi.updateFields(id, fields);
-    message.success('字段已保存');
-    load();
+    try {
+      await eventsApi.updateFields(id, fields);
+      toastOk('字段已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
   };
 
   const saveConditions = async (conditions: EventDetail['conditions']) => {
     if (!id) return;
-    await eventsApi.updateConditions(id, conditions);
-    message.success('条件规则已保存');
-    load();
+    try {
+      await eventsApi.updateConditions(id, conditions);
+      toastOk('条件规则已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
+  };
+
+  const saveFormLayout = async (items: EventDetail['formLayout']) => {
+    if (!id) return;
+    try {
+      await eventsApi.updateFormLayout(id, items);
+      toastOk('布局已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
+  };
+
+  const savePanelConfig = async (panelConfig: PanelConfig) => {
+    if (!id) return;
+    try {
+      await eventsApi.updatePanelConfig(id, panelConfig);
+      toastOk('面板配置已保存');
+      load();
+    } catch (err) {
+      toastFail(err);
+    }
   };
 
   const deleteEvent = async () => {
     if (!id) return;
-    await eventsApi.delete(id);
-    message.success('已删除');
-    navigate('/events');
+    try {
+      await eventsApi.delete(id);
+      toastOk('已删除');
+      navigate('/events');
+    } catch (err) {
+      toastFail(err, '删除失败');
+    }
   };
 
   if (!event) return <Card loading={loading}>加载中...</Card>;
@@ -183,13 +246,9 @@ export default function EventEditPage() {
               children: (
                 <EventFormDesigner
                   event={event}
-                  onSaveLayout={async (items) => {
-                    if (!id) return;
-                    await eventsApi.updateFormLayout(id, items);
-                    message.success('布局已保存');
-                    load();
-                  }}
+                  onSaveLayout={saveFormLayout}
                   onSaveConditions={saveConditions}
+                  onSavePanelConfig={savePanelConfig}
                 />
               ),
             },
@@ -226,8 +285,18 @@ function FieldsEditor({
   onSave: (fields: FieldDefinition[]) => Promise<void>;
 }) {
   const [items, setItems] = useState(fields);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => setItems(fields), [fields]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(items.map((f, i) => ({ ...f, sortOrder: i })));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const addField = () => {
     setItems([
@@ -295,7 +364,7 @@ function FieldsEditor({
       ))}
       <Space>
         <Button onClick={addField}>新增自定义字段</Button>
-        <Button type="primary" onClick={() => onSave(items.map((f, i) => ({ ...f, sortOrder: i })))}>
+        <Button type="primary" loading={saving} onClick={handleSave}>
           保存字段
         </Button>
       </Space>

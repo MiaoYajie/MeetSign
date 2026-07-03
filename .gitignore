@@ -15,11 +15,18 @@ dist/
 .vs/
 .idea/
 
-# Uploads
-backend/MeetSign.Api/wwwroot/uploads/*
-!backend/MeetSign.Api/wwwroot/uploads/.gitkeep
+# Uploads / built frontend (generated at publish time)
+backend/MeetSign.Api/wwwroot/**
+!backend/MeetSign.Api/wwwroot/.gitkeep
 
 # OS
 Thumbs.db
 .DS_Store
 /backend/MeetSign.Api/wwwroot/uploads
+/backend/MeetSign.Api/Properties/PublishProfiles
+/backend/MeetSign.Api/appsettings.Development.json
+/backend/MeetSign.Api/appsettings.Production.json
+/publish-test
+/publish-test-sc
+/publish-test-sc2
+/publish-test-sc3

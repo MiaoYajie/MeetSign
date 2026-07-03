@@ -30,6 +30,26 @@ public class SessionService : ISessionService
             .OrderByDescending(s => s.OpenStart)
             .Select(s => new SessionListItemDto(
                 s.Id,
+                s.EventId,
+                s.Event.Name,
+                s.Name,
+                s.OpenStart,
+                s.OpenEnd,
+                s.PublicToken,
+                s.Attendees.Count,
+                s.Records.Count))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SessionListItemDto>> ListAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        return await _db.CheckInSessions
+            .Where(s => s.Event.OwnerId == ownerId)
+            .OrderByDescending(s => s.OpenStart)
+            .Select(s => new SessionListItemDto(
+                s.Id,
+                s.EventId,
+                s.Event.Name,
                 s.Name,
                 s.OpenStart,
                 s.OpenEnd,

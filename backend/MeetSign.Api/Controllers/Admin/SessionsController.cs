@@ -20,6 +20,12 @@ public class SessionsController : ControllerBase
         _attendeeImportService = attendeeImportService;
     }
 
+    [HttpGet("all")]
+    public async Task<ActionResult<IReadOnlyList<SessionListItemDto>>> ListAll(CancellationToken cancellationToken)
+    {
+        return Ok(await _sessionService.ListAllAsync(GetUserId(), cancellationToken));
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SessionDetailDto>> Get(Guid id, CancellationToken cancellationToken)
     {

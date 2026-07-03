@@ -12,10 +12,12 @@ namespace MeetSign.Infrastructure.Services;
 public class CheckInService : ICheckInService
 {
     private readonly AppDbContext _db;
+    private readonly IFileStorageService _fileStorage;
 
-    public CheckInService(AppDbContext db)
+    public CheckInService(AppDbContext db, IFileStorageService fileStorage)
     {
         _db = db;
+        _fileStorage = fileStorage;
     }
 
     public async Task<PublicSessionConfigDto> GetPublicConfigAsync(string token, CancellationToken cancellationToken = default)
@@ -28,9 +30,10 @@ public class CheckInService : ICheckInService
             session.Event.Name,
             session.Name,
             session.Event.CheckInMode,
-            session.Event.BackgroundUrl,
-            session.Event.LogoUrl,
+            _fileStorage.NormalizeUrl(session.Event.BackgroundUrl),
+            _fileStorage.NormalizeUrl(session.Event.LogoUrl),
             session.Event.FooterHtml,
+            PanelConfigSerializer.Deserialize(session.Event.PanelConfigJson),
             isOpen,
             isOpen ? null : $"签到尚未开放或已结束。开放时间：{session.OpenStart.ToLocalTime():yyyy-MM-dd HH:mm} - {session.OpenEnd.ToLocalTime():yyyy-MM-dd HH:mm}",
             session.Event.FieldDefinitions.OrderBy(f => f.SortOrder).Select(f => new PublicFieldDto(f.Key, f.Label, f.FieldType, f.Required)).ToList(),

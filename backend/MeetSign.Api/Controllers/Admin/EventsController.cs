@@ -107,6 +107,13 @@ public class EventsController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
+    [HttpPut("{id:guid}/panel-config")]
+    public async Task<ActionResult<EventDetailDto>> UpdatePanelConfig(Guid id, UpdatePanelConfigRequest request, CancellationToken cancellationToken)
+    {
+        try { return Ok(await _eventService.UpdatePanelConfigAsync(GetUserId(), id, request, cancellationToken)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
     [HttpGet("{id:guid}/sessions")]
     public async Task<ActionResult> ListSessions(Guid id, [FromServices] ISessionService sessionService, CancellationToken cancellationToken)
     {

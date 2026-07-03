@@ -15,10 +15,10 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,18 +29,18 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "Events",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    CheckInMode = table.Column<int>(type: "INTEGER", nullable: false),
-                    BackgroundUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    LogoUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    FooterHtml = table.Column<string>(type: "TEXT", nullable: true),
-                    SuccessTemplate = table.Column<string>(type: "TEXT", nullable: false),
-                    FailureTemplate = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CheckInMode = table.Column<int>(type: "int", nullable: false),
+                    BackgroundUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FooterHtml = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SuccessTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FailureTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,13 +57,13 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "CheckInSessions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EventId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    PublicToken = table.Column<string>(type: "TEXT", nullable: false),
-                    OpenStart = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    OpenEnd = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublicToken = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    OpenStart = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OpenEnd = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,10 +80,10 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "FieldConditions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EventId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TargetFieldKey = table.Column<string>(type: "TEXT", nullable: false),
-                    ConditionJson = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TargetFieldKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConditionJson = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -100,14 +100,14 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "FieldDefinitions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EventId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Key = table.Column<string>(type: "TEXT", nullable: false),
-                    Label = table.Column<string>(type: "TEXT", nullable: false),
-                    FieldType = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsBuiltIn = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Required = table.Column<bool>(type: "INTEGER", nullable: false),
-                    SortOrder = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Key = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Label = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FieldType = table.Column<int>(type: "int", nullable: false),
+                    IsBuiltIn = table.Column<bool>(type: "bit", nullable: false),
+                    Required = table.Column<bool>(type: "bit", nullable: false),
+                    SortOrder = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -124,12 +124,12 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "FormLayoutItems",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EventId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FieldKey = table.Column<string>(type: "TEXT", nullable: false),
-                    Row = table.Column<int>(type: "INTEGER", nullable: false),
-                    Col = table.Column<int>(type: "INTEGER", nullable: false),
-                    ColSpan = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FieldKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Row = table.Column<int>(type: "int", nullable: false),
+                    Col = table.Column<int>(type: "int", nullable: false),
+                    ColSpan = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -146,10 +146,10 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "Attendees",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SessionId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FieldValuesJson = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FieldValuesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,14 +166,14 @@ namespace MeetSign.Infrastructure.Migrations
                 name: "CheckInRecords",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SessionId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SubmittedValuesJson = table.Column<string>(type: "TEXT", nullable: false),
-                    IsSuccess = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ResultMessage = table.Column<string>(type: "TEXT", nullable: false),
-                    CheckedInAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SubmitIndex = table.Column<int>(type: "INTEGER", nullable: false),
-                    ClientFingerprint = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SubmittedValuesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsSuccess = table.Column<bool>(type: "bit", nullable: false),
+                    ResultMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CheckedInAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SubmitIndex = table.Column<int>(type: "int", nullable: false),
+                    ClientFingerprint = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {

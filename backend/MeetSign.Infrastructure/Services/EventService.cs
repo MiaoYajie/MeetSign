@@ -1,5 +1,6 @@
 using MeetSign.Application.DTOs.Events;
 using MeetSign.Application.Interfaces;
+using MeetSign.Application.Services;
 using MeetSign.Domain.Entities;
 using MeetSign.Domain.Enums;
 using MeetSign.Infrastructure.Data;
@@ -10,10 +11,12 @@ namespace MeetSign.Infrastructure.Services;
 public class EventService : IEventService
 {
     private readonly AppDbContext _db;
+    private readonly IFileStorageService _fileStorage;
 
-    public EventService(AppDbContext db)
+    public EventService(AppDbContext db, IFileStorageService fileStorage)
     {
         _db = db;
+        _fileStorage = fileStorage;
     }
 
     public async Task<IReadOnlyList<EventListItemDto>> ListAsync(Guid ownerId, CancellationToken cancellationToken = default)
@@ -193,6 +196,15 @@ public class EventService : IEventService
         return await GetAsync(ownerId, eventId, cancellationToken);
     }
 
+    public async Task<EventDetailDto> UpdatePanelConfigAsync(Guid ownerId, Guid eventId, UpdatePanelConfigRequest request, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetOwnedEventAsync(ownerId, eventId, cancellationToken);
+        entity.PanelConfigJson = PanelConfigSerializer.Serialize(request.PanelConfig);
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetAsync(ownerId, eventId, cancellationToken);
+    }
+
     private IQueryable<Event> GetOwnedEventQuery(Guid ownerId, Guid eventId) =>
         _db.Events.Where(e => e.OwnerId == ownerId && e.Id == eventId);
 
@@ -214,17 +226,18 @@ public class EventService : IEventService
         new() { Id = Guid.NewGuid(), EventId = eventId, FieldKey = "seatNumber", Row = 2, Col = 0, ColSpan = 12 }
     ];
 
-    private static EventDetailDto MapDetail(Event entity) =>
+    private EventDetailDto MapDetail(Event entity) =>
         new(
             entity.Id,
             entity.Name,
             entity.Description,
             entity.CheckInMode,
-            entity.BackgroundUrl,
-            entity.LogoUrl,
+            _fileStorage.NormalizeUrl(entity.BackgroundUrl),
+            _fileStorage.NormalizeUrl(entity.LogoUrl),
             entity.FooterHtml,
             entity.SuccessTemplate,
             entity.FailureTemplate,
+            PanelConfigSerializer.Deserialize(entity.PanelConfigJson),
             entity.FieldDefinitions.OrderBy(f => f.SortOrder).Select(f => new FieldDefinitionDto(
                 f.Id, f.Key, f.Label, f.FieldType, f.IsBuiltIn, f.Required, f.SortOrder)).ToList(),
             entity.FormLayoutItems.OrderBy(f => f.Row).ThenBy(f => f.Col).Select(f => new FormLayoutItemDto(

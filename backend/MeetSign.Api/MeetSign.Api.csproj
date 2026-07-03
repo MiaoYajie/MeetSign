@@ -4,6 +4,16 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <FrontendRoot>$(MSBuildProjectDirectory)\..\..\web</FrontendRoot>
+    <SkipFrontendBuild Condition="'$(SkipFrontendBuild)' == ''">false</SkipFrontendBuild>
+  </PropertyGroup>
+
+  <!-- Azure App Service 未预装 .NET 10，Release 发布必须自包含 win-x64 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +30,22 @@
     <ProjectReference Include="..\MeetSign.Application\MeetSign.Application.csproj" />
     <ProjectReference Include="..\MeetSign.Infrastructure\MeetSign.Infrastructure.csproj" />
   </ItemGroup>
+
+  <Target Name="BuildAndCopyFrontend" BeforeTargets="ComputeFilesToPublish" Condition="'$(SkipFrontendBuild)' != 'true'">
+    <Message Importance="high" Text="Building frontend apps..." />
+    <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm install --frozen-lockfile" />
+    <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm --filter admin build" />
+    <Exec WorkingDirectory="$(FrontendRoot)" Command="pnpm --filter checkin build" />
+    <ItemGroup>
+      <AdminDistFiles Include="$(FrontendRoot)\admin\dist\**\*.*" />
+      <CheckinDistFiles Include="$(FrontendRoot)\checkin\dist\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AdminDistFiles)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(CheckinDistFiles)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\checkin\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FrontendContent Include="$(MSBuildProjectDirectory)\wwwroot\**\*.*" Exclude="$(MSBuildProjectDirectory)\wwwroot\uploads\**\*.*" />
+      <Content Include="@(FrontendContent)" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="Never" />
+    </ItemGroup>
+  </Target>
 
 </Project>

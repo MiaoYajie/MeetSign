@@ -12,7 +12,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("Default") ?? "Data Source=meetsign.db"));
+            options.UseSqlServer(configuration.GetConnectionString("Default")));
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IEventService, EventService>();
@@ -21,7 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IAttendeeImportService, AttendeeImportService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IFileStorageService, AzureBlobStorageService>();
 
         return services;
     }

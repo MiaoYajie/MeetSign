@@ -14,6 +14,7 @@ public class Event
     public string? FooterHtml { get; set; }
     public string SuccessTemplate { get; set; } = "签到成功！";
     public string FailureTemplate { get; set; } = "签到失败，请核对信息后重试。";
+    public string? PanelConfigJson { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

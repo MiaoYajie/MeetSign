@@ -15,4 +15,5 @@ public interface IEventService
     Task<EventDetailDto> UpdateConditionsAsync(Guid ownerId, Guid eventId, UpdateConditionsRequest request, CancellationToken cancellationToken = default);
     Task<EventDetailDto> UpdateTemplatesAsync(Guid ownerId, Guid eventId, UpdateTemplatesRequest request, CancellationToken cancellationToken = default);
     Task<EventDetailDto> UpdateModeAsync(Guid ownerId, Guid eventId, UpdateModeRequest request, CancellationToken cancellationToken = default);
+    Task<EventDetailDto> UpdatePanelConfigAsync(Guid ownerId, Guid eventId, UpdatePanelConfigRequest request, CancellationToken cancellationToken = default);
 }

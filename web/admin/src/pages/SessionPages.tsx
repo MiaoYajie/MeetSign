@@ -28,7 +28,7 @@ export default function SessionSharePage() {
   if (!session) return <Card loading>加载中...</Card>;
 
   return (
-    <Card title="分享签到页" extra={<Link to={`/events/${session.eventId}/sessions`}>返回场次</Link>}>
+    <Card title="分享签到页" extra={<Link to={`/sessions?eventId=${session.eventId}`}>返回场次</Link>}>
       <Space direction="vertical" size="large">
         <div>
           <Typography.Text strong>签到链接</Typography.Text>

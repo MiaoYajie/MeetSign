@@ -1,37 +1,72 @@
-import { Button, Card, DatePicker, Form, Input, Modal, Popconfirm, Space, Table, message } from 'antd';
+import { Button, Card, DatePicker, Form, Input, Modal, Popconfirm, Select, Space, Table, message } from 'antd';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { eventsApi, sessionsApi, type SessionListItem } from '../api/client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { eventsApi, sessionsApi, type EventListItem, type SessionListItem } from '../api/client';
 
-export default function EventSessionsPage() {
-  const { id } = useParams<{ id: string }>();
+function normalizeSession(raw: Record<string, unknown>): SessionListItem {
+  return {
+    id: String(raw.id ?? raw.Id ?? ''),
+    eventId: String(raw.eventId ?? raw.EventId ?? ''),
+    eventName: String(raw.eventName ?? raw.EventName ?? ''),
+    name: String(raw.name ?? raw.Name ?? ''),
+    openStart: String(raw.openStart ?? raw.OpenStart ?? ''),
+    openEnd: String(raw.openEnd ?? raw.OpenEnd ?? ''),
+    publicToken: String(raw.publicToken ?? raw.PublicToken ?? ''),
+    attendeeCount: Number(raw.attendeeCount ?? raw.AttendeeCount ?? 0),
+    recordCount: Number(raw.recordCount ?? raw.RecordCount ?? 0),
+  };
+}
+
+export default function SessionsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterEventId = searchParams.get('eventId') ?? undefined;
+  const isAllSessions = !filterEventId;
+
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
+  const [events, setEvents] = useState<EventListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<SessionListItem | null>(null);
   const [form] = Form.useForm();
 
-  const load = async () => {
-    if (!id) return;
+  const eventName = useMemo(
+    () => events.find((e) => e.id === filterEventId)?.name,
+    [events, filterEventId]
+  );
+
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await eventsApi.listSessions(id);
-      setSessions(data);
+      if (filterEventId) {
+        const { data } = await eventsApi.listSessions(filterEventId);
+        setSessions(data.map((item) => normalizeSession(item as unknown as Record<string, unknown>)));
+      } else {
+        const { data } = await sessionsApi.list();
+        setSessions(data.map((item) => normalizeSession(item as unknown as Record<string, unknown>)));
+      }
     } catch {
-      message.error('加载场次失败');
+      message.error('加载场次失败，请确认后端已重启');
+      setSessions([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterEventId]);
 
   useEffect(() => {
     load();
-  }, [id]);
+  }, [load]);
+
+  useEffect(() => {
+    eventsApi.list().then(({ data }) => setEvents(data)).catch(() => undefined);
+  }, []);
 
   const openCreate = () => {
     setEditingSession(null);
     form.resetFields();
+    if (filterEventId) {
+      form.setFieldValue('eventId', filterEventId);
+    }
     setOpen(true);
   };
 
@@ -51,7 +86,6 @@ export default function EventSessionsPage() {
   };
 
   const saveSession = async () => {
-    if (!id) return;
     const values = await form.validateFields();
     const payload = {
       name: values.name,
@@ -59,30 +93,47 @@ export default function EventSessionsPage() {
       openEnd: values.range[1].toISOString(),
     };
 
-    if (editingSession) {
-      await sessionsApi.update(editingSession.id, payload);
-      message.success('场次已更新');
-    } else {
-      await eventsApi.createSession(id, payload);
-      message.success('场次已创建');
+    try {
+      if (editingSession) {
+        await sessionsApi.update(editingSession.id, payload);
+        message.success('场次已更新');
+      } else {
+        const targetEventId = filterEventId ?? values.eventId;
+        if (!targetEventId) {
+          message.warning('请选择所属活动');
+          return;
+        }
+        await eventsApi.createSession(targetEventId, payload);
+        message.success('场次已创建');
+      }
+      closeModal();
+      load();
+    } catch {
+      message.error('保存失败');
     }
-
-    closeModal();
-    load();
   };
 
   const deleteSession = async (sessionId: string) => {
-    await sessionsApi.delete(sessionId);
-    message.success('场次已删除');
-    load();
+    try {
+      await sessionsApi.delete(sessionId);
+      message.success('场次已删除');
+      load();
+    } catch {
+      message.error('删除失败');
+    }
   };
 
   return (
     <Card
-      title="签到场次"
+      title={filterEventId && eventName ? `签到场次：${eventName}` : '签到场次'}
       extra={
         <Space>
-          <Link to={`/events/${id}/edit`}>返回活动</Link>
+          {filterEventId ? (
+            <Button type="link" onClick={() => setSearchParams({})}>查看全部场次</Button>
+          ) : (
+            <Link to="/events">活动列表</Link>
+          )}
+          {filterEventId && <Link to={`/events/${filterEventId}/edit`}>编辑活动</Link>}
           <Button type="primary" onClick={openCreate}>新建场次</Button>
         </Space>
       }
@@ -92,7 +143,14 @@ export default function EventSessionsPage() {
         loading={loading}
         dataSource={sessions}
         columns={[
-          { title: '名称', dataIndex: 'name' },
+          ...(isAllSessions
+            ? [{
+                title: '所属活动',
+                dataIndex: 'eventName' as const,
+                render: (value: string, row: SessionListItem) => value || row.eventName || '-',
+              }]
+            : []),
+          { title: '场次名称', dataIndex: 'name' },
           {
             title: '开放时间',
             render: (_, row) =>
@@ -122,7 +180,15 @@ export default function EventSessionsPage() {
         onCancel={closeModal}
         onOk={saveSession}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" initialValues={{ eventId: filterEventId }}>
+          {isAllSessions && !editingSession && (
+            <Form.Item name="eventId" label="所属活动" rules={[{ required: true, message: '请选择活动' }]}>
+              <Select
+                placeholder="选择活动"
+                options={events.map((e) => ({ value: e.id, label: e.name }))}
+              />
+            </Form.Item>
+          )}
           <Form.Item name="name" label="场次名称" rules={[{ required: true }]}>
             <Input />
           </Form.Item>

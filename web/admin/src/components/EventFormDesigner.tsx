@@ -8,14 +8,35 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import { Button, Card, Input, Select, Space, Table, message } from 'antd';
+import {
+  CheckInPanel,
+  DEFAULT_PANEL_CONFIG,
+  mergePanelConfig,
+  type FieldDefinition,
+  type PanelConfig,
+} from '@meetsign/form-kit';
+import {
+  Button,
+  Card,
+  ColorPicker,
+  Divider,
+  Input,
+  Select,
+  Slider,
+  Space,
+  Switch,
+  Table,
+  Typography,
+} from 'antd';
 import { useMemo, useState } from 'react';
 import type { EventDetail } from '../api/client';
+import '../styles/checkin-preview.css';
 
 interface Props {
   event: EventDetail;
   onSaveLayout: (items: EventDetail['formLayout']) => Promise<void>;
   onSaveConditions: (conditions: EventDetail['conditions']) => Promise<void>;
+  onSavePanelConfig: (config: PanelConfig) => Promise<void>;
 }
 
 function DraggableField({ id, label }: { id: string; label: string }) {
@@ -38,7 +59,7 @@ function DraggableField({ id, label }: { id: string; label: string }) {
   );
 }
 
-function CanvasSlot({
+function PreviewFormSlot({
   row,
   fieldKey,
   label,
@@ -53,24 +74,25 @@ function CanvasSlot({
   return (
     <div
       ref={setNodeRef}
-      style={{
-        minHeight: 56,
-        border: `1px solid ${isOver ? '#1677ff' : '#d9d9d9'}`,
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 8,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
+      className="preview-form-slot"
+      style={{ borderColor: isOver ? '#1677ff' : '#cbd5e1' }}
     >
-      <span>{label || fieldKey}</span>
-      <Button size="small" danger onClick={onRemove}>移除</Button>
+      <span>{label || fieldKey || '拖拽字段到此处'}</span>
+      {fieldKey && (
+        <Button size="small" danger onClick={onRemove}>
+          移除
+        </Button>
+      )}
     </div>
   );
 }
 
-export default function EventFormDesigner({ event, onSaveLayout, onSaveConditions }: Props) {
+export default function EventFormDesigner({
+  event,
+  onSaveLayout,
+  onSaveConditions,
+  onSavePanelConfig,
+}: Props) {
   const fieldMap = useMemo(
     () => new Map(event.fields.map((f) => [f.key, f.label])),
     [event.fields]
@@ -78,12 +100,23 @@ export default function EventFormDesigner({ event, onSaveLayout, onSaveCondition
 
   const [layout, setLayout] = useState(event.formLayout);
   const [conditions, setConditions] = useState(event.conditions);
+  const [panelConfig, setPanelConfig] = useState<PanelConfig>(
+    mergePanelConfig(event.panelConfig ?? DEFAULT_PANEL_CONFIG)
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [previewValues] = useState<Record<string, string>>({});
 
   const sensors = useSensors(useSensor(PointerSensor));
 
   const usedKeys = new Set(layout.map((x) => x.fieldKey));
   const availableFields = event.fields.filter((f) => !usedKeys.has(f.key));
+
+  const previewFields: FieldDefinition[] = event.fields.map((f) => ({
+    key: f.key,
+    label: f.label,
+    fieldType: f.fieldType as FieldDefinition['fieldType'],
+    required: f.required,
+  }));
 
   const onDragEnd = (e: DragEndEvent) => {
     setActiveId(null);
@@ -112,25 +145,54 @@ export default function EventFormDesigner({ event, onSaveLayout, onSaveCondition
     });
   };
 
+  const updatePanel = (patch: Partial<PanelConfig>) => {
+    setPanelConfig((prev) => ({ ...prev, ...patch }));
+  };
+
+  const formPreview = (
+    <div className="dynamic-form">
+      {layout.length === 0 && (
+        <PreviewFormSlot row={0} fieldKey="" label="拖拽字段到此处" onRemove={() => undefined} />
+      )}
+      {layout.map((item, index) => (
+        <PreviewFormSlot
+          key={item.fieldKey}
+          row={index}
+          fieldKey={item.fieldKey}
+          label={fieldMap.get(item.fieldKey) ?? item.fieldKey}
+          onRemove={() => setLayout(layout.filter((x) => x.fieldKey !== item.fieldKey))}
+        />
+      ))}
+      <PreviewFormSlot
+        row={layout.length}
+        fieldKey=""
+        label="拖拽到此处追加字段"
+        onRemove={() => undefined}
+      />
+    </div>
+  );
+
   return (
     <DndContext
       sensors={sensors}
       onDragStart={(e) => setActiveId(String(e.active.id))}
       onDragEnd={onDragEnd}
     >
-      <Space align="start" style={{ width: '100%' }} size="large">
-        <Card title="字段池" style={{ width: 260 }}>
+      <div className="form-designer-layout">
+        <Card title="字段池" className="form-designer-pool">
           <Space direction="vertical" style={{ width: '100%' }}>
             {availableFields.map((field) => (
               <DraggableField key={field.key} id={field.key} label={field.label} />
             ))}
-            {availableFields.length === 0 && <span>所有字段已添加到画布</span>}
+            {availableFields.length === 0 && (
+              <Typography.Text type="secondary">所有字段已添加到面板</Typography.Text>
+            )}
           </Space>
         </Card>
 
         <Card
-          title="表单画布"
-          style={{ flex: 1 }}
+          title="面板预览"
+          className="form-designer-preview"
           extra={
             <Space>
               <Button
@@ -145,32 +207,129 @@ export default function EventFormDesigner({ event, onSaveLayout, onSaveCondition
                   )
                 }
               >
-                重置布局
+                重置表单
               </Button>
-              <Button type="primary" onClick={() => onSaveLayout(layout)}>保存布局</Button>
+              <Button type="primary" onClick={() => onSaveLayout(layout)}>
+                保存布局
+              </Button>
             </Space>
           }
         >
-          {layout.length === 0 && (
-            <CanvasSlot row={0} fieldKey="" label="拖拽字段到此处" onRemove={() => undefined} />
-          )}
-          {layout.map((item, index) => (
-            <CanvasSlot
-              key={item.fieldKey}
-              row={index}
-              fieldKey={item.fieldKey}
-              label={fieldMap.get(item.fieldKey) ?? item.fieldKey}
-              onRemove={() => setLayout(layout.filter((x) => x.fieldKey !== item.fieldKey))}
+          <div
+            className="checkin-preview-wrap"
+            style={
+              event.backgroundUrl
+                ? { backgroundImage: `url(${event.backgroundUrl})` }
+                : undefined
+            }
+          >
+            <CheckInPanel
+              eventName={event.name}
+              panelConfig={panelConfig}
+              logoUrl={event.logoUrl}
+              fields={previewFields}
+              layout={layout}
+              visibleFieldKeys={layout.map((x) => x.fieldKey)}
+              values={previewValues}
+              onChange={() => undefined}
+              preview
+              formSlot={formPreview}
             />
-          ))}
-          <CanvasSlot
-            row={layout.length}
-            fieldKey=""
-            label="拖拽到此处追加字段"
-            onRemove={() => undefined}
-          />
+          </div>
         </Card>
-      </Space>
+
+        <Card title="面板配置" className="form-designer-config">
+          <Typography.Title level={5}>布局设置</Typography.Title>
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <div>
+              <Typography.Text>标题</Typography.Text>
+              <Input
+                value={panelConfig.title}
+                onChange={(e) => updatePanel({ title: e.target.value })}
+                placeholder={`默认：${event.name}`}
+                style={{ marginTop: 4 }}
+              />
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                留空则使用活动名称
+              </Typography.Text>
+            </div>
+
+            <div>
+              <Space style={{ marginBottom: 4 }}>
+                <Typography.Text>固定欢迎语</Typography.Text>
+                <Switch
+                  checked={panelConfig.showWelcomeMessage}
+                  onChange={(checked) => updatePanel({ showWelcomeMessage: checked })}
+                />
+              </Space>
+              <Input.TextArea
+                rows={2}
+                disabled={!panelConfig.showWelcomeMessage}
+                value={panelConfig.welcomeMessage}
+                onChange={(e) => updatePanel({ welcomeMessage: e.target.value })}
+                placeholder="例如：欢迎参加本次活动，请填写信息后签到"
+              />
+            </div>
+
+            <div>
+              <Typography.Text>签到按钮文字</Typography.Text>
+              <Input
+                value={panelConfig.submitButtonText}
+                onChange={(e) => updatePanel({ submitButtonText: e.target.value })}
+                style={{ marginTop: 4 }}
+              />
+            </div>
+          </Space>
+
+          <Divider />
+
+          <Typography.Title level={5}>样式设置</Typography.Title>
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <div>
+              <Typography.Text>面板背景颜色</Typography.Text>
+              <div style={{ marginTop: 4 }}>
+                <ColorPicker
+                  value={panelConfig.panelBackgroundColor}
+                  onChange={(_, hex) => updatePanel({ panelBackgroundColor: hex })}
+                  showText
+                />
+              </div>
+            </div>
+
+            <div>
+              <Typography.Text>
+                面板透明度：{Math.round(panelConfig.panelBackgroundOpacity * 100)}%
+              </Typography.Text>
+              <Slider
+                min={0}
+                max={100}
+                value={Math.round(panelConfig.panelBackgroundOpacity * 100)}
+                onChange={(v) => updatePanel({ panelBackgroundOpacity: v / 100 })}
+              />
+            </div>
+
+            <div>
+              <Typography.Text>签到按钮颜色</Typography.Text>
+              <div style={{ marginTop: 4 }}>
+                <ColorPicker
+                  value={panelConfig.submitButtonColor}
+                  onChange={(_, hex) => updatePanel({ submitButtonColor: hex })}
+                  showText
+                />
+              </div>
+            </div>
+          </Space>
+
+          <Button
+            type="primary"
+            block
+            style={{ marginTop: 16 }}
+            onClick={() => onSavePanelConfig(panelConfig)}
+          >
+            保存面板配置
+          </Button>
+        </Card>
+      </div>
 
       <Card title="条件展示规则" style={{ marginTop: 16 }}>
         <Table
@@ -237,17 +396,16 @@ export default function EventFormDesigner({ event, onSaveLayout, onSaveCondition
         <Button
           type="primary"
           style={{ marginTop: 12 }}
-          onClick={async () => {
-            await onSaveConditions(conditions);
-            message.success('条件规则已保存');
-          }}
+          onClick={() => onSaveConditions(conditions)}
         >
           保存条件规则
         </Button>
       </Card>
 
       <DragOverlay>
-        {activeId ? <DraggableField id={activeId} label={fieldMap.get(activeId) ?? activeId} /> : null}
+        {activeId ? (
+          <DraggableField id={activeId} label={fieldMap.get(activeId) ?? activeId} />
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

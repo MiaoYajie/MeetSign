@@ -1,14 +1,22 @@
 services:
-  postgres:
-    image: postgres:16-alpine
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      POSTGRES_USER: meetsign
-      POSTGRES_PASSWORD: meetsign
-      POSTGRES_DB: meetsign
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "MeetSign@Dev123"
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - meetsign_pg:/var/lib/postgresql/data
+      - meetsign_mssql:/var/opt/mssql
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+    volumes:
+      - meetsign_azurite:/data
+    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --location /data
 
 volumes:
-  meetsign_pg:
+  meetsign_mssql:
+  meetsign_azurite:
